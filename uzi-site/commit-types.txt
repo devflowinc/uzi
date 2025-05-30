@@ -1,0 +1,16 @@
+feat
+fix
+chore
+refactor
+perf
+test
+docs
+style
+ci
+build
+revert
+wip
+init
+temp
+merge
+hotfix
