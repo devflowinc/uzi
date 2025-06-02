@@ -1,1901 +1,337 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="go-import" content="uzi.sh git https://github.com/devflowinc/uzi">
-    <meta name="go-import" content="github.com/devflowinc/uzi git https://github.com/devflowinc/uzi">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Uzi</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="go-import"
+      content="uzi.sh git https://github.com/devflowinc/uzi"
+    />
+    <meta
+      name="go-import"
+      content="github.com/devflowinc/uzi git https://github.com/devflowinc/uzi"
+    />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Uzi - Multi-Agent Development Tool</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@400;500;600&display=swap');
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        color: white;
+        background-color: #0a0a0a;
+        overflow-x: hidden;
+        height: 100vh;
+        width: 100%;
+      }
+
+      .hero {
+        position: relative;
+        height: 100vh;
+        width: 100%;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+      }
+
+      .background-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("./media/16x9steppecommander.png");
+        background-size: cover;
+        background-position: center;
+        z-index: 1;
+        filter: grayscale(100%) brightness(0.5) contrast(1.1);
+      }
+
+      .grain-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2; /* Above background, below content */
+        pointer-events: none; /* Allows clicks to pass through */
+      }
+
+      .navbar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 2rem 4rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 3;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        font-size: 1.5rem;
+        font-weight: 600;
+      }
+
+      .logo-icon {
+        margin-right: 0.5rem;
+        height: 24px;
+        width: 24px;
+        background-color: white;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 2rem;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+      }
+
+      .nav-links a {
+        color: white;
+        text-decoration: none;
+        opacity: 0.8;
+      }
+
+      .nav-links a:hover {
+        opacity: 1;
+      }
+
+      .star-us-button {
+        display: flex;
+        align-items: center; /* Vertically centers the SVG and text */
+        gap: 0.5rem; /* Adds space between the SVG and the text */
+
+        /* Styles similar to .nav-links a */
+        color: white;
+        text-decoration: none;
+        opacity: 0.8;
+
+        /* Styles similar to .nav-links text */
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+      }
+
+      .star-us-button:hover {
+        opacity: 1; /* Hover effect similar to .nav-links a:hover */
+      }
+
+      .star-us-button svg {
+        width: 1.5em; /* Makes SVG width 1.5 times the button's font size (0.8rem * 1.5 = 1.2rem) */
+        height: 1.5em; /* Makes SVG height 1.5 times the button's font size (0.8rem * 1.5 = 1.2rem) */
+        /* The SVG already has an inline fill style for white color */
+      }
+
+      .star-us-button p {
+        margin: 0; /* Removes any default paragraph margins to help with alignment */
+      }
+
+      @media (max-width: 768px) {
+        .navbar {
+          padding: 1.5rem;
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #ffffff;
-            color: #000000;
-            cursor: none;
-            overflow: hidden;
-            min-height: 100vh;
-            position: relative;
-            width: 100%;
-            height: 100vh;
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            padding-top: 60px;
+        .content {
+          padding: 0 1.5rem;
+          max-width: 100%;
         }
 
-        /* Streaming Banner */
-        .streaming-banner {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 60px;
-            background: #ffffff;
-            color: #000000;
-            font-family: 'Courier New', monospace;
-            font-size: 18px;
-            font-weight: normal;
-            z-index: 9999;
-            overflow: hidden;
-            border-top: 1px solid #000000;
-            border-bottom: 1px solid #000000;
-        }
-
-        .banner-content {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            white-space: nowrap;
-            animation: streamText 30s linear infinite;
-        }
-
-        @keyframes streamText {
-            0% {
-                transform: translateY(-50%) translateX(100vw);
-            }
-            100% {
-                transform: translateY(-50%) translateX(-100%);
-            }
-        }
-
-        /* Custom Cursors */
-        .custom-cursor {
-            position: fixed;
-            width: 32px;
-            height: 32px;
-            pointer-events: none;
-            z-index: 10000;
-            transform-origin: center center;
-            transition: transform 0.2s ease;
-        }
-
-        .uzi-gun {
-            width: 100%;
-            height: 100%;
-            background-image: url('media/uzi-icon-cursor.png');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            position: relative;
-            transform: rotate(-35deg);
-            transition: transform 0.3s ease;
-        }
-
-        .rifle-gun {
-            width: 120%; /* 20% larger than uzi */
-            height: 120%; /* 20% larger than uzi */
-            background-image: url('media/blunderbuss-cursor.png');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            position: relative;
-            transform: rotate(-35deg);
-            transition: transform 0.3s ease;
-            left: -10%; /* Center the larger icon */
-            top: -10%; /* Center the larger icon */
-        }
-
-        /* Targeting mode */
-        .custom-cursor.targeting .uzi-gun {
-            transform: rotate(75deg);
-        }
-
-        .custom-cursor.targeting .rifle-gun {
-            transform: rotate(75deg);
-        }
-
-        .custom-cursor.hidden {
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-
-        .laser-beam {
-            position: fixed;
-            width: 2px;
-            height: 100px;
-            background: linear-gradient(to bottom, 
-                rgba(0, 255, 255, 0.8) 0%, 
-                rgba(138, 43, 226, 0.6) 50%, 
-                transparent 100%);
-            pointer-events: none;
-            z-index: 9999;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-        }
-
-        .laser-beam.active {
-            opacity: 1;
-        }
-
-        /* Main content */
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
-            padding: 4rem 2rem;
-            text-align: center;
-        }
-
-        h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 6rem;
-            font-weight: 900;
-            color: #0066ff;
-            margin-bottom: 3rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
+        .tagline {
+          font-size: 3rem;
         }
 
         .nav-links {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
+          display: none;
         }
+      }
 
-        .cyber-link {
-            display: block;
-            text-decoration: none;
-            color: #000000;
-            font-family: 'Inter', sans-serif;
-            font-weight: 400;
-            font-size: 1.2rem;
-            transition: color 0.3s ease;
-            position: relative;
+      /* New styles for the scrolling banner */
+      #banner-container {
+        width: 100%;
+        position: absolute; /* Changed from relative to absolute */
+        bottom: 30px; /* 30px from the bottom */
+        left: 0; /* Align to the left */
+        overflow: hidden;
+        white-space: nowrap;
+        z-index: 3; /* Ensure it's above other elements if necessary */
+      }
+
+      #banner-container .scroll-content {
+        display: flex;
+        align-items: center;
+        width: fit-content;
+        white-space: nowrap;
+        animation: loop 60s linear infinite; /* Adjusted timing for potentially long text */
+        will-change: transform; /* Hint for browser optimization */
+        backface-visibility: hidden; /* May help with flickering */
+      }
+
+      @keyframes loop {
+        0% {
+          transform: translateX(0%);
         }
+        100% {
+          transform: translateX(-50%);
+        } /* Adjust if your content isn't duplicated for seamless loop */
+      }
 
-
-
-        .cyber-link:hover {
-            color: #0066ff;
-        }
-
-        /* Code bullet effects */
-        .code-bullet {
-            position: absolute;
-            width: 20px;
-            height: 12px;
-            border-radius: 6px 0 0 6px;
-            font-family: 'Courier New', monospace;
-            font-size: 8px;
-            font-weight: bold;
-            pointer-events: none;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            text-shadow: none;
-            filter: none;
-        }
-
-        .code-bullet.diff-add {
-            background-color: #2ea043;
-            border: 1px solid #1f7a2b;
-        }
-
-        .code-bullet.diff-remove {
-            background-color: #da3633;
-            border: 1px solid #b91c1c;
-        }
-
-        /* Muzzle flash */
-        .muzzle-flash {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            background: radial-gradient(circle, 
-                rgba(0, 255, 255, 1) 0%,
-                rgba(138, 43, 226, 0.8) 30%,
-                rgba(255, 255, 255, 0.6) 50%,
-                transparent 70%);
-            border-radius: 50%;
-            pointer-events: none;
-            opacity: 0;
-            z-index: 9998;
-            filter: blur(1px);
-        }
-
-
-        /* Rifle Cooldown Animation */
-        .rifle-cooldown {
-            position: fixed;
-            width: 50px;
-            height: 6px;
-            pointer-events: none;
-            z-index: 9999;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-
-        .rifle-cooldown.active {
-            opacity: 1;
-        }
-
-        .cooldown-bar {
-            width: 100%;
-            height: 100%;
-            background: rgba(218, 54, 51, 0.3);
-            border: 1px solid #000000;
-            border-radius: 3px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .cooldown-progress {
-            height: 100%;
-            background: #da3633;
-            width: var(--progress, 0%);
-            transition: width 0.1s linear;
-            border-radius: 2px;
-        }
-        
-
-        /* Game UI */
-        #gameUI {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            color: #0066ff;
-            font-size: 18px;
-            font-family: 'Courier New', monospace;
-            z-index: 100;
-        }
-
-        #gameUI div {
-            margin-bottom: 10px;
-        }
-
-        /* Sprite styles */
-        .game-sprite {
-            position: fixed;
-            pointer-events: none;
-            z-index: 50;
-        }
-
-        /* Sprite commit type labels */
-        .sprite-label {
-            position: fixed;
-            background: rgba(0, 102, 255, 0.9);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            font-size: 10px;
-            font-weight: bold;
-            pointer-events: none;
-            z-index: 60;
-            text-transform: uppercase;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        /* Pause overlay */
-        .pause-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: transparent;
-            color: #ff0000;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 10001;
-            font-family: 'Courier New', monospace;
-            font-size: 6rem;
-            font-weight: bold;
-            text-align: center;
-            pointer-events: none;
-        }
-        
-        .pause-overlay.active {
-            display: flex;
-        }
-
-        /* Toggle Switch */
-        .uzi-toggle {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            color: #000000;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        .toggle-label-left {
-            font-weight: bold;
-        }
-
-        .toggle-label-right {
-            font-weight: bold;
-        }
-
-        .toggle-label-shortcut {
-            font-size: 10px;
-            color: #666;
-            margin-top: 2px;
-        }
-
-        .toggle-switch {
-            position: relative;
-            width: 180px;
-            height: 32px;
-            background: #f0f0f0;
-            border-radius: 16px;
-            cursor: pointer;
-            border: 2px solid #000000;
-            display: flex;
-            overflow: hidden;
-        }
-
-        .toggle-option {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: bold;
-            color: #000000;
-            position: relative;
-            z-index: 2;
-            transition: color 0.3s ease;
-        }
-
-        .toggle-highlight {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 50%;
-            height: 100%;
-            background: #0066ff;
-            border-radius: 14px;
-            transition: transform 0.3s ease, background-color 0.3s ease;
-            z-index: 1;
-        }
-
-        .toggle-switch.active .toggle-highlight {
-            background: #0066ff; /* Blue for UZI */
-        }
-
-        .toggle-switch:not(.active) .toggle-highlight {
-            transform: translateX(100%);
-            background: #d4af37; /* Muted yellow for WITHOUT UZI */
-        }
-
-        .toggle-switch.active .toggle-option:first-child {
-            color: #ffffff;
-        }
-
-        .toggle-switch:not(.active) .toggle-option:last-child {
-            color: #000000;
-        }
-
-        /* Mobile adjustments */
-        @media (max-width: 768px) {
-            /* Rotate cursor to face down on mobile */
-            .custom-cursor {
-                transform: translate(-50%, -50%) rotate(90deg) !important;
-            }
-            
-            .uzi-toggle {
-                bottom: 40px;
-                left: 50%;
-                right: auto;
-                transform: translateX(-50%);
-                font-size: 12px;
-            }
-            
-            .toggle-switch {
-                width: 220px;
-                height: 48px;
-                border-radius: 24px;
-                border: 3px solid #000000;
-            }
-            
-            .toggle-highlight {
-                border-radius: 21px;
-            }
-            
-            .toggle-option {
-                font-size: 13px;
-                font-weight: bold;
-            }
-            
-            .toggle-label-shortcut {
-                display: none;
-            }
-        }
-
+      .banner-item {
+        /* Style for the actual text content */
+        display: flex;
+        align-items: center;
+        color: #e2e8f0;
+        font-size: 0.9rem; /* From example */
+        padding: 0.7rem 1rem; /* From example, adjust as needed */
+        margin: 0rem 1rem; /* From example, creates spacing if you have multiple items, for single long text this might not be needed or adjusted */
+        white-space: nowrap; /* Ensures the text stays on one line */
+        text-transform: uppercase; /* Matches original banner style */
+      }
     </style>
-</head>
-<body>
-    <!-- Streaming Banner -->
-    <div class="streaming-banner">
-        <div class="banner-content" id="bannerContent">
-            | Q2 2025, LLMS ARE THE MASTERS OF DEVELOPMENT, ONLY HORSELESS CARRIAGES STAND BEFORE THEM, REPOS ARE NOW BATTLEFIELDS |
-        </div>
-    </div>
+  </head>
+  <body>
+    <svg style="display: none">
+      <filter id="noiseFilter">
+        <feTurbulence
+          type="fractalNoise"
+          baseFrequency="0.5"
+          numOctaves="3"
+          stitchTiles="stitch"
+        />
+        <feColorMatrix
+          type="matrix"
+          values="0 0 0 0 0
+                  0 0 0 0 0
+                  0 0 0 0 0
+                  0 0 0 0.8 0
+                "
+        />
+        <!-- Adjust alpha for intensity -->
+      </filter>
+    </svg>
+    <div class="hero">
+      <div class="background-image"></div>
+      <div class="grain-overlay" style="filter: url(#noiseFilter)"></div>
 
-    <div class="custom-cursor" id="cursor">
-        <div class="uzi-gun" id="uziGun">
-            <div class="gun-barrel"></div>
+      <nav class="navbar">
+        <div class="logo">
+          <div class="logo-icon"></div>
+          Uzi
         </div>
-        <div class="rifle-gun" id="rifleGun" style="display: none;">
-            <div class="gun-barrel"></div>
-        </div>
-    </div>
-    
-    <div class="laser-beam"></div>
-    
-    <!-- Rifle Cooldown Animation -->
-    <div class="rifle-cooldown" id="rifleCooldown">
-        <div class="cooldown-bar">
-            <div class="cooldown-progress" id="cooldownProgress"></div>
-        </div>
-    </div>
-
-    <div class="container">
-        <h1>UZI</h1>
         <div class="nav-links">
-            <a href="https://github.com/devflowinc/uzi" class="cyber-link">Repository</a>
-            <a href="#" class="cyber-link">Blog</a>
+          <a
+            href="https://github.com/devflowinc/uzi?tab=readme-ov-file#installation"
+            >Install</a
+          >
+          <a
+            href="https://github.com/devflowinc/uzi?tab=readme-ov-file#usage-examples"
+            >Guide</a
+          >
         </div>
-    </div>
-
-    <!-- Game UI -->
-    <div id="gameUI">
-        <div>SCORE: <span id="score">0</span></div>
-        <div>SHOTS: <span id="shots">0</span></div>
-    </div>
-
-    <!-- Pause Overlay -->
-    <div class="pause-overlay" id="pauseOverlay">
-        <div>
-            PAUSED<br>
-            <span style="font-size: 1rem; margin-top: 20px; display: block;" id="pauseInstruction">Press SPACEBAR to resume</span>
+        <div class="star-us-cta">
+          <a
+            href="https://github.com/devflowinc/uzi"
+            target="_blank"
+            class="star-us-button"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              x="0px"
+              y="0px"
+              width="100"
+              height="100"
+              viewBox="0,0,256,256"
+              style="fill: #ffffff"
+            >
+              <g
+                fill="#ffffff"
+                fill-rule="nonzero"
+                stroke="none"
+                stroke-width="1"
+                stroke-linecap="butt"
+                stroke-linejoin="miter"
+                stroke-miterlimit="10"
+                stroke-dasharray=""
+                stroke-dashoffset="0"
+                font-family="none"
+                font-weight="none"
+                font-size="none"
+                text-anchor="none"
+                style="mix-blend-mode: normal"
+              >
+                <g transform="scale(8.53333,8.53333)">
+                  <path
+                    d="M15,3c-6.627,0 -12,5.373 -12,12c0,5.623 3.872,10.328 9.092,11.63c-0.056,-0.162 -0.092,-0.35 -0.092,-0.583v-2.051c-0.487,0 -1.303,0 -1.508,0c-0.821,0 -1.551,-0.353 -1.905,-1.009c-0.393,-0.729 -0.461,-1.844 -1.435,-2.526c-0.289,-0.227 -0.069,-0.486 0.264,-0.451c0.615,0.174 1.125,0.596 1.605,1.222c0.478,0.627 0.703,0.769 1.596,0.769c0.433,0 1.081,-0.025 1.691,-0.121c0.328,-0.833 0.895,-1.6 1.588,-1.962c-3.996,-0.411 -5.903,-2.399 -5.903,-5.098c0,-1.162 0.495,-2.286 1.336,-3.233c-0.276,-0.94 -0.623,-2.857 0.106,-3.587c1.798,0 2.885,1.166 3.146,1.481c0.896,-0.307 1.88,-0.481 2.914,-0.481c1.036,0 2.024,0.174 2.922,0.483c0.258,-0.313 1.346,-1.483 3.148,-1.483c0.732,0.731 0.381,2.656 0.102,3.594c0.836,0.945 1.328,2.066 1.328,3.226c0,2.697 -1.904,4.684 -5.894,5.097c1.098,0.573 1.899,2.183 1.899,3.396v2.734c0,0.104 -0.023,0.179 -0.035,0.268c4.676,-1.639 8.035,-6.079 8.035,-11.315c0,-6.627 -5.373,-12 -12,-12z"
+                  ></path>
+                </g>
+              </g>
+            </svg>
+            <p>Star Us <span id="star-count">| 188</span></p>
+          </a>
         </div>
-    </div>
+      </nav>
 
-    <!-- Uzi Toggle Switch -->
-    <div class="uzi-toggle">
-        <div class="toggle-switch active" id="uziToggle">
-            <div class="toggle-highlight"></div>
-            <div class="toggle-option">UZI</div>
-            <div class="toggle-option">WITHOUT UZI</div>
+      <!-- Removed original banner div -->
+      <!-- <div class="banner">
+        <div class="banner-content">
+          Q2 2025, LLMS ARE THE MASTERS OF DEVELOPMENT, ONLY HORSELESS CARRIAGES
+          STAND BEFORE THEM, REPOS ARE NOW BATTLEFIELDS | THIS IS A WAR DO NOT
+          THINK IT IS NOT | LITERALLY TENS OF BILLIONS ARE BEING SET ON FIRE FOR
+          YOUR ATTENTION AND FOR YOUR LOYALTY | UZI IS THE FULL-AUTO OF CODE GEN
+          | WHY ARE YOU NOT GIVING YOUR TEAM INSANELY ASSYMETRIC ADVANTAGES
         </div>
-        <div class="toggle-label-shortcut">(s)</div>
+      </div> -->
     </div>
 
+    <!-- New Scrolling Banner HTML Structure -->
+    <div id="banner-container">
+      <div class="scroll-content">
+        <!-- To make the loop seamless, the content inside .scroll-content often needs to be duplicated -->
+        <!-- For a very long single string, you might need to adjust the animation or duplicate the string in JS -->
+        <div class="banner-item">
+          Q2 2025, LLMS ARE THE MASTERS OF DEVELOPMENT, ONLY HORSELESS CARRIAGES
+          STAND BEFORE THEM, REPOS ARE NOW BATTLEFIELDS | THIS IS A WAR DO NOT
+          THINK IT IS NOT | LITERALLY TENS OF BILLIONS ARE BEING SET ON FIRE FOR
+          YOUR ATTENTION AND FOR YOUR LOYALTY | UZI IS THE FULL-AUTO OF CODE GEN
+          | WHY ARE YOU NOT GIVING YOUR TEAM INSANELY ASSYMETRIC ADVANTAGES
+        </div>
+        <!-- Duplicate the banner item for a smoother infinite scroll effect if the text isn't wide enough -->
+        <div class="banner-item">
+          Q2 2025, LLMS ARE THE MASTERS OF DEVELOPMENT, ONLY HORSELESS CARRIAGES
+          STAND BEFORE THEM, REPOS ARE NOW BATTLEFIELDS | THIS IS A WAR DO NOT
+          THINK IT IS NOT | LITERALLY TENS OF BILLIONS ARE BEING SET ON FIRE FOR
+          YOUR ATTENTION AND FOR YOUR LOYALTY | UZI IS THE FULL-AUTO OF CODE GEN
+          | WHY ARE YOU NOT GIVING YOUR TEAM INSANELY ASSYMETRIC ADVANTAGES
+        </div>
+      </div>
+      <div class="banner-fade"></div>
+      <!-- Optional fade effect -->
+    </div>
 
     <script>
-        const cursor = document.querySelector('.custom-cursor');
-        const laserBeam = document.querySelector('.laser-beam');
-        const cyberLinks = document.querySelectorAll('.cyber-link');
-        const bannerContent = document.getElementById('bannerContent');
-        
-        // Cursor system variables
-        let currentCursorType = 'uzi'; // 'uzi' or 'without-uzi'
-        const uziGun = document.getElementById('uziGun');
-        const rifleGun = document.getElementById('rifleGun');
-        const uziToggle = document.getElementById('uziToggle');
-        
-        // Cooldown animation elements
-        const rifleCooldown = document.getElementById('rifleCooldown');
-        const cooldownProgress = document.getElementById('cooldownProgress');
-        
-        // Function to switch cursor types
-        function switchCursor() {
-            // Stop any ongoing firing when switching cursor types
-            stopFiring();
-            stopTouchFiring();
-            
-            if (currentCursorType === 'uzi') {
-                currentCursorType = 'without-uzi';
-                uziGun.style.display = 'none';
-                rifleGun.style.display = 'block';
-                uziToggle.classList.remove('active');
-                console.log('Switched to without-uzi cursor (blunderbuss - slow single-shot)');
-            } else {
-                // Switching from rifle to uzi - clean up rifle cooldown
-                cleanupRifleCooldown();
-                currentCursorType = 'uzi';
-                uziGun.style.display = 'block';
-                rifleGun.style.display = 'none';
-                uziToggle.classList.add('active');
-                console.log('Switched to uzi cursor (fast automatic)');
-            }
-            
-            // On mobile, reset cursor to center of screen when toggling
-            if (isMobile()) {
-                mouseX = window.innerWidth / 2;
-                mouseY = window.innerHeight / 2;
-                updateCursorPosition();
-                console.log('Reset cursor to center on mobile toggle');
-            }
-        }
-        
-        // Keyboard events for cursor switching and pause
-        function handleKeyDown(e) {
-            console.log('Key pressed:', e.key, 'Code:', e.code); // Debug log
-            
-            // Handle spacebar for pause
-            if (e.code === 'Space') {
-                console.log('Spacebar detected - toggling pause');
-                e.preventDefault();
-                e.stopPropagation();
-                togglePause();
-                return;
-            }
-            
-            // Handle S key for cursor switching (only when not paused)
-            if (e.key.toLowerCase() === 's' && !gamePaused) {
-                console.log('Toggle key detected:', e.key);
-                e.preventDefault();
-                e.stopPropagation();
-                switchCursor();
-            }
-        }
-        
-        document.addEventListener('keydown', handleKeyDown, true); // Use capture phase
-
-        // Toggle switch click and touch events
-        uziToggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            switchCursor();
-        });
-        
-        uziToggle.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            switchCursor();
-        });
-
-        // Mobile detection
-        function isMobile() {
-            return window.innerWidth <= 768;
-        }
-        
-        // Log mobile status
-        console.log('Mobile detected:', isMobile(), 'Width:', window.innerWidth);
-
-
-        // Touch to mouse event mapping
-        function mapTouchToMouse(e) {
-            const touch = e.touches[0] || e.changedTouches[0];
-            
-            const simulatedEvent = new MouseEvent(e.type.replace('touch', 'mouse').replace('start', 'down').replace('end', 'up'), {
-                bubbles: true,
-                cancelable: true,
-                view: window,
-                clientX: touch.clientX,
-                clientY: touch.clientY
-            });
-            touch.target.dispatchEvent(simulatedEvent);
-            e.preventDefault();
-        }
-
-        // Add touch event listeners
-        document.addEventListener('touchstart', mapTouchToMouse, { passive: false });
-        document.addEventListener('touchmove', mapTouchToMouse, { passive: false });
-        document.addEventListener('touchend', mapTouchToMouse, { passive: false });
-
-        // Load banner messages from file
-        async function loadBannerMessages() {
-            try {
-                const response = await fetch('banner-messages.txt?t=' + Date.now()); // Cache busting
-                const text = await response.text();
-                console.log('Loaded text:', text); // Debug log
-                // Split by | character and filter out empty messages
-                const messages = text.split('|').map(msg => msg.trim()).filter(msg => msg !== '');
-                console.log('Parsed messages:', messages); // Debug log
-                
-                if (messages.length > 0) {
-                    // Create continuous stream by joining all messages
-                    const continuousStream = messages.join(' | ') + ' | ';
-                    
-                    // Set the continuous stream as banner content
-                    bannerContent.textContent = continuousStream;
-                    console.log('Created continuous stream:', continuousStream); // Debug log
-                }
-            } catch (error) {
-                console.log('Error loading banner messages:', error);
-                // Keep the default message in HTML if file load fails
-            }
-        }
-
-        // Initialize banner messages
-        loadBannerMessages();
-        
-        
-        let mouseX = 0, mouseY = 0;
-        let isTargeting = false;
-        let touchHoldTimer = null;
-        let touchStartTime = 0;
-        let isTouch = false;
-        
-        // Double-tap detection for mobile pause
-        let lastTapTime = 0;
-        let doubleTapDelay = 300; // 300ms window for double-tap
-
-        // Short coding terms - sequential firing
-        const codePrompts = [
-            "git push",
-            "git pull",
-            "git commit",
-            "claude code",
-            "npm install",
-            "yarn dev",
-            "function()",
-            "const x",
-            "let data",
-            "if else",
-            "for loop",
-            "while",
-            "try catch",
-            "async",
-            "await",
-            "import",
-            "export",
-            "class",
-            "interface",
-            "type",
-            "useState",
-            "useEffect",
-            "return",
-            "console.log",
-            "fetch()",
-            "map()",
-            "filter()",
-            "reduce()",
-            "push()",
-            "pop()",
-            "splice()",
-            "join()",
-            "split()",
-            "parse()",
-            "stringify()",
-            "length",
-            "indexOf()",
-            "includes()",
-            "setTimeout",
-            "setInterval",
-            "JSON",
-            "Promise",
-            "resolve",
-            "reject",
-            "then",
-            "catch",
-            "finally"
-        ];
-
-        let currentPromptIndex = 0;
-
-        // Initialize cursor position
-        function initializeCursor() {
-            if (isMobile) {
-                // Center cursor on mobile
-                mouseX = window.innerWidth / 2;
-                mouseY = window.innerHeight / 2;
-                updateCursorPosition();
-            }
-        }
-
-        // Mouse tracking with edge detection
-        document.addEventListener('mousemove', (e) => {
-            if (!isTouch) {
-                mouseX = e.clientX;
-                mouseY = e.clientY;
-                
-                // Hide cursor at edges (like normal cursor behavior)
-                const margin = 10;
-                if (mouseX <= margin || mouseX >= window.innerWidth - margin || 
-                    mouseY <= margin || mouseY >= window.innerHeight - margin) {
-                    cursor.classList.add('hidden');
-                } else {
-                    cursor.classList.remove('hidden');
-                }
-                
-                updateCursorPosition();
-            }
-        });
-
-        // Initialize on load
-        window.addEventListener('load', initializeCursor);
-
-        function updateCursorPosition() {
-            // Apply recoil offset to cursor position
-            cursor.style.left = (mouseX - 16 + recoilX) + 'px';
-            cursor.style.top = (mouseY - 16 + recoilY) + 'px';
-            
-            // Apply recoil rotation to active gun
-            const totalRotation = baseRotation + recoilRotation;
-            const activeGun = currentCursorType === 'uzi' ? uziGun : rifleGun;
-            
-            // On mobile, add 240 degrees (180 + 30 + 30) for proper gun alignment
-            const mobileRotationOffset = isMobile() ? 240 : 0;
-            
-            if (isTargeting) {
-                activeGun.style.transform = `rotate(${75 + recoilRotation + mobileRotationOffset}deg)`;
-            } else {
-                activeGun.style.transform = `rotate(${totalRotation + mobileRotationOffset}deg)`;
-            }
-            
-            // Update cooldown animation position
-            updateCooldownPosition();
-        }
-
-        // No special effects for links
-
-        // Firing mechanism - hold down to fire
-        let isFiring = false;
-        let fireInterval;
-        let shotCount = 0;
-        let heatLevel = 0;
-        let lastShotTime = Date.now();
-        let heatDecayInterval;
-        let recoilX = 0;
-        let recoilY = 0;
-        let recoilRotation = 0;
-        let baseRotation = -35; // Default gun rotation
-        let rifleOnCooldown = false; // Rifle-specific cooldown
-        let rifleCooldownTimeout = null; // Store timeout reference for cleanup
-        let rifleCooldownStartTime = 0; // Track when cooldown started
-        let rifleCooldownDuration = 0; // Track total cooldown duration
-        let rifleCooldownPaused = false; // Track if cooldown is paused
-        
-        // Function to clean up rifle cooldown state
-        function cleanupRifleCooldown() {
-            if (rifleCooldownTimeout) {
-                clearTimeout(rifleCooldownTimeout);
-                rifleCooldownTimeout = null;
-            }
-            rifleOnCooldown = false;
-            rifleCooldown.classList.remove('active');
-            console.log('Rifle cooldown cleaned up');
-        }
-        
-        // Function to start cooldown animation
-        function startCooldownAnimation(duration) {
-            rifleCooldown.classList.add('active');
-            rifleCooldownStartTime = Date.now();
-            rifleCooldownDuration = duration;
-            rifleCooldownPaused = false;
-            
-            // Position cooldown bar at current cursor location when it starts
-            updateCooldownPosition();
-            
-            function updateProgress() {
-                if (gamePaused && !rifleCooldownPaused) {
-                    // Game just got paused - store current progress
-                    const elapsed = Date.now() - rifleCooldownStartTime;
-                    rifleCooldownDuration = Math.max(0, rifleCooldownDuration - elapsed);
-                    rifleCooldownPaused = true;
-                } else if (!gamePaused && rifleCooldownPaused) {
-                    // Game just got resumed - reset start time
-                    rifleCooldownStartTime = Date.now();
-                    rifleCooldownPaused = false;
-                }
-                
-                if (!gamePaused) {
-                    const now = Date.now();
-                    const elapsed = now - rifleCooldownStartTime;
-                    const remaining = Math.max(0, rifleCooldownDuration - elapsed);
-                    const progressPercent = Math.min(100, (elapsed / rifleCooldownDuration) * 100);
-                    
-                    // Update progress bar
-                    cooldownProgress.style.setProperty('--progress', `${progressPercent}%`);
-                    
-                    if (remaining <= 0) {
-                        rifleCooldown.classList.remove('active');
-                        return;
-                    }
-                }
-                
-                requestAnimationFrame(updateProgress);
-            }
-            
-            updateProgress();
-        }
-        
-        // Function to position cooldown animation relative to cursor
-        function updateCooldownPosition() {
-            if (currentCursorType === 'without-uzi' && rifleOnCooldown) {
-                rifleCooldown.style.left = (mouseX - 25) + 'px'; // Center the 50px bar
-                rifleCooldown.style.top = (mouseY - 45) + 'px'; // Float above cursor
-            }
-        }
-        
-        function startFiring() {
-            if (isFiring || gamePaused) return;
-            
-            // Check rifle cooldown
-            if (currentCursorType === 'without-uzi' && rifleOnCooldown) {
-                console.log('Rifle on cooldown - cannot fire');
-                return;
-            }
-            
-            isFiring = true;
-            
-            // Clear heat decay when starting to fire
-            if (heatDecayInterval) {
-                clearInterval(heatDecayInterval);
-                heatDecayInterval = null;
-            }
-            
-            // Different fire rates based on cursor type
-            let fireRate;
-            if (currentCursorType === 'uzi') {
-                fireRate = 80; // Fast - 80ms between shots
-            } else { // without-uzi (rifle)
-                fireRate = 2400; // Very slow - 2.4 seconds between shots (double the original)
-            }
-            
-            // Fire immediately
-            fireBullet();
-            
-            // Handle cooldown for rifle
-            if (currentCursorType === 'without-uzi') {
-                rifleOnCooldown = true;
-                startCooldownAnimation(fireRate);
-                
-                // Use a more sophisticated timeout that accounts for pausing
-                function scheduleRifleCooldownEnd() {
-                    rifleCooldownTimeout = setTimeout(() => {
-                        if (gamePaused) {
-                            // If paused, reschedule
-                            scheduleRifleCooldownEnd();
-                        } else {
-                            rifleOnCooldown = false;
-                            rifleCooldownTimeout = null;
-                            console.log('Rifle cooldown complete - ready to fire');
-                        }
-                    }, 100); // Check every 100ms instead of waiting full duration
-                }
-                scheduleRifleCooldownEnd();
-            }
-            
-            // Continue firing while held down (for uzi only)
-            if (currentCursorType === 'uzi') {
-                fireInterval = setInterval(() => {
-                    fireBullet();
-                }, fireRate);
-            }
-            // For rifle, it's single-shot only - no continuous firing
-        }
-
-        function startTouchFiring() {
-            if (isFiring || gamePaused) return;
-            
-            // Check rifle cooldown for touch as well
-            if (currentCursorType === 'without-uzi' && rifleOnCooldown) {
-                console.log('Rifle on cooldown - cannot fire (touch)');
-                return;
-            }
-            
-            // Clear any existing timer
-            if (touchHoldTimer) {
-                clearTimeout(touchHoldTimer);
-            }
-            
-            // Set timer for 0.1 second delay
-            touchHoldTimer = setTimeout(() => {
-                startFiring();
-            }, 100);
-        }
-
-        function stopFiring() {
-            isFiring = false;
-            if (fireInterval) {
-                clearInterval(fireInterval);
-                fireInterval = null;
-            }
-            startHeatDecay();
-        }
-
-        function stopTouchFiring() {
-            // Clear the hold timer if still waiting
-            if (touchHoldTimer) {
-                clearTimeout(touchHoldTimer);
-                touchHoldTimer = null;
-            }
-            
-            // Stop actual firing
-            stopFiring();
-        }
-
-        // Pause functionality
-        function togglePause() {
-            gamePaused = !gamePaused;
-            const pauseOverlay = document.getElementById('pauseOverlay');
-            const pauseInstruction = document.getElementById('pauseInstruction');
-            const bannerContent = document.getElementById('bannerContent');
-            
-            if (gamePaused) {
-                pauseOverlay.classList.add('active');
-                // Update pause instruction based on device type
-                if (isMobile()) {
-                    pauseInstruction.textContent = 'Double tap to resume';
-                } else {
-                    pauseInstruction.textContent = 'Press SPACEBAR to resume';
-                }
-                // Stop all firing
-                stopFiring();
-                stopTouchFiring();
-                // Pause banner animation
-                bannerContent.style.animationPlayState = 'paused';
-                console.log('Game paused');
-            } else {
-                pauseOverlay.classList.remove('active');
-                // Resume banner animation
-                bannerContent.style.animationPlayState = 'running';
-                console.log('Game resumed');
-            }
-        }
-
-        // Mouse events
-        document.addEventListener('mousedown', (e) => {
-            // Don't fire when paused or clicking on links
-            const target = e.target.closest('.cyber-link');
-            if (!target && !gamePaused) {
-                startFiring();
-            }
-        });
-        
-        document.addEventListener('mouseup', stopFiring);
-        document.addEventListener('mouseleave', stopFiring);
-
-        // Touch events for mobile  
-        document.addEventListener('touchstart', (e) => {
-            // Check if touch is on a link - allow default behavior
-            const target = e.target.closest('.cyber-link');
-            if (target) {
-                return; // Let the link handle the touch normally
-            }
-            
-            e.preventDefault(); // Prevent default touch behavior
-            isTouch = true;
-            
-            // Double-tap detection for pause (mobile only)
-            if (isMobile()) {
-                const currentTime = Date.now();
-                const timeSinceLastTap = currentTime - lastTapTime;
-                
-                if (timeSinceLastTap < doubleTapDelay && timeSinceLastTap > 0) {
-                    // Double-tap detected - toggle pause
-                    console.log('Double-tap detected - toggling pause');
-                    togglePause();
-                    lastTapTime = 0; // Reset to prevent triple-tap issues
-                    return; // Don't proceed with firing
-                } else {
-                    lastTapTime = currentTime;
-                }
-            }
-            
-            // Update cursor position to touch location (even when paused)
-            const touch = e.touches[0];
-            mouseX = touch.clientX;
-            mouseY = touch.clientY;
-            updateCursorPosition();
-            
-            // Start touch firing with delay (only when not paused)
-            if (!gamePaused) {
-                startTouchFiring();
-            }
-        });
-
-        document.addEventListener('touchmove', (e) => {
-            // Check if touch started on a link - allow default behavior
-            const target = e.target.closest('.cyber-link');
-            if (target) {
-                return; // Let the link handle the touch normally
-            }
-            
-            e.preventDefault();
-            
-            if (e.touches.length > 0) {
-                const touch = e.touches[0];
-                mouseX = touch.clientX;
-                mouseY = touch.clientY;
-                updateCursorPosition();
-            }
-        });
-
-        document.addEventListener('touchend', (e) => {
-            // Check if touch is on a link - allow default behavior
-            const target = e.target.closest('.cyber-link');
-            if (target) {
-                return; // Let the link handle the touch normally
-            }
-            
-            e.preventDefault();
-            isTouch = false;
-            stopTouchFiring();
-        });
-
-        document.addEventListener('touchcancel', (e) => {
-            e.preventDefault();
-            isTouch = false;
-            stopTouchFiring();
-        });
-
-        function startHeatDecay() {
-            // Start cooling down the gun
-            heatDecayInterval = setInterval(() => {
-                heatLevel = Math.max(0, heatLevel - 0.3);
-                if (heatLevel <= 0) {
-                    clearInterval(heatDecayInterval);
-                    heatDecayInterval = null;
-                }
-            }, 100);
-        }
-
-        function fireBullet() {
-            // Increment shots fired counter
-            shotsFired++;
-            updateGameUI();
-            
-            // Heat system only applies to uzi
-            if (currentCursorType === 'uzi') {
-                // Increase heat level with each shot
-                const currentTime = Date.now();
-                const timeSinceLastShot = currentTime - lastShotTime;
-                
-                // Rapid fire increases heat more
-                const heatIncrease = timeSinceLastShot < 100 ? 2 : 1;
-                heatLevel = Math.min(100, heatLevel + heatIncrease);
-                lastShotTime = currentTime;
-            }
-            // Rifle doesn't generate heat
-            shotCount++;
-            
-            // Generate recoil based on heat level
-            generateRecoil();
-            
-            // Calculate gun tip position based on rotation with recoil
-            const mobileRotationOffset = isMobile() ? -60 : 0; // 60 degrees counter-clockwise on mobile
-            const gunAngle = (isTargeting ? 75 : baseRotation) + recoilRotation + mobileRotationOffset; // degrees
-            const radians = gunAngle * Math.PI / 180;
-            
-            // Different gun tip offsets for different weapons
-            let gunLength, tipOffsetX, tipOffsetY;
-            if (currentCursorType === 'uzi') {
-                gunLength = 25; // approximate length from center to tip
-                tipOffsetX = Math.cos(radians) * gunLength - 37; // shift left
-                tipOffsetY = Math.sin(radians) * gunLength + 20; // shift down
-            } else { // without-uzi (rifle)
-                gunLength = 30; // longer rifle barrel
-                tipOffsetX = Math.cos(radians) * gunLength - 37; // shift left
-                tipOffsetY = Math.sin(radians) * gunLength + 20; // shift down
-            }
-            
-            // Apply recoil to gun tip position
-            const tipX = mouseX + tipOffsetX + recoilX;
-            const tipY = mouseY + tipOffsetY + recoilY;
-            
-            // Create muzzle flash at gun tip with heat level
-            createMuzzleFlash(tipX, tipY, heatLevel);
-            
-            // Create different bullets based on weapon type
-            const bullet = document.createElement('div');
-            let binaryValue, diffType;
-            
-            if (currentCursorType === 'uzi') {
-                // Fast uzi bullets - 1 or 0
-                binaryValue = Math.random() < 0.5 ? '1' : '0';
-                diffType = Math.random() < 0.5 ? 'diff-add' : 'diff-remove';
-            } else { // without-uzi (rifle)
-                // Slow rifle bullets - more powerful, always "X" 
-                binaryValue = 'X';
-                diffType = 'diff-remove'; // Always red for powerful rifle shots
-            }
-            
-            bullet.className = `code-bullet ${diffType}`;
-            bullet.textContent = binaryValue;
-            
-            // Add to DOM temporarily to measure dimensions
-            document.body.appendChild(bullet);
-            
-            // Position bullet so middle of right edge starts at gun tip
-            const bulletWidth = bullet.offsetWidth;
-            const bulletHeight = bullet.offsetHeight;
-            const startX = tipX - bulletWidth;           // right edge at tip
-            const startY = tipY - (bulletHeight / 2);    // middle of right edge at tip
-            
-            bullet.style.left = startX + 'px';
-            bullet.style.top = startY + 'px';
-            
-            // Tilt bullets diagonally for visual effect with choppy variance
-            const baseTilt = -40;
-            const tiltOptions = [-3, -2, -1, 0, 1, 2, 3]; // Discrete tilt values
-            const tiltVariance = tiltOptions[Math.floor(Math.random() * tiltOptions.length)];
-            bullet.style.transform = `rotate(${baseTilt + tiltVariance}deg)`;
-            bullet.style.transformOrigin = 'right center';
-
-            // Different bullet trajectories based on weapon type
-            let bulletAngle, speed, totalSpread;
-            
-            // Base angle - adjust for mobile rotation
-            const baseBulletAngle = isMobile() ? 135 - 30 : 135; // Subtract 30 degrees on mobile
-            
-            if (currentCursorType === 'uzi') {
-                // Uzi bullets - affected by recoil and heat
-                const heatSpread = (heatLevel / 100) * 8; // More spread when hot
-                const recoilSpread = Math.abs(recoilRotation) * 2; // Spread based on recoil
-                totalSpread = Math.min(15, heatSpread + recoilSpread);
-                bulletAngle = baseBulletAngle + (Math.random() - 0.5) * totalSpread;
-                speed = 15 + Math.random() * 5;
-            } else { // without-uzi (rifle)
-                // Rifle bullets - very accurate, faster
-                totalSpread = 2; // Very little spread
-                bulletAngle = baseBulletAngle + (Math.random() - 0.5) * totalSpread;
-                speed = 25 + Math.random() * 3; // Faster bullets
-            }
-            const bulletRadians = bulletAngle * Math.PI / 180;
-            const vx = Math.cos(bulletRadians) * speed;
-            const vy = Math.sin(bulletRadians) * speed;
-
-            let posX = startX;
-            let posY = startY;
-            let opacity = 1;
-
-            function animateBullet() {
-                posX += vx;
-                posY += vy;
-                opacity -= 0.008;
-                
-                bullet.style.left = posX + 'px';
-                bullet.style.top = posY + 'px';
-                bullet.style.opacity = opacity;
-                
-                // Check collision with sprites
-                sprites.forEach(sprite => {
-                    if (!sprite.isDestroyed && sprite.checkHit(posX + bulletWidth/2, posY + bulletHeight/2)) {
-                        sprite.takeDamage();
-                        bullet.remove();
-                        opacity = 0; // Stop animation
-                    }
-                });
-
-                if (opacity > 0 && posX < window.innerWidth + 50 && posX > -50 && 
-                    posY < window.innerHeight + 50 && posY > -50) {
-                    requestAnimationFrame(animateBullet);
-                } else {
-                    bullet.remove();
-                }
-            }
-            
-            animateBullet();
-        }
-
-        function generateRecoil() {
-            // Different recoil based on weapon type
-            let heatRatio, baseRecoilStrength, maxRecoilStrength, recoilStrength;
-            
-            if (currentCursorType === 'uzi') {
-                // Uzi recoil - affected by heat level
-                heatRatio = heatLevel / 100;
-                baseRecoilStrength = 2;
-                maxRecoilStrength = 8;
-                recoilStrength = baseRecoilStrength + (heatRatio * (maxRecoilStrength - baseRecoilStrength));
-            } else { // without-uzi (rifle)
-                // Rifle recoil - always heavy kick, not affected by heat
-                heatRatio = 0; // No heat system for rifle
-                baseRecoilStrength = 12; // Much stronger recoil
-                maxRecoilStrength = 12;
-                recoilStrength = baseRecoilStrength;
-            }
-            
-            // Generate random recoil in multiple directions
-            const recoilAngle = Math.random() * Math.PI * 2; // Random direction
-            const recoilMagnitude = (Math.random() * 0.5 + 0.5) * recoilStrength; // Random magnitude
-            
-            // Apply recoil to position (kicks back and up mostly)
-            const backwardBias = -Math.PI / 4; // Bias toward backward direction
-            const finalAngle = recoilAngle * 0.3 + backwardBias * 0.7; // Blend random with bias
-            
-            recoilX = Math.cos(finalAngle) * recoilMagnitude;
-            recoilY = Math.sin(finalAngle) * recoilMagnitude;
-            
-            // Apply rotational recoil (gun jumps around)
-            const maxRotationRecoil = 15; // degrees
-            recoilRotation = (Math.random() - 0.5) * maxRotationRecoil * (heatRatio * 0.5 + 0.5);
-            
-            // Update cursor position immediately
-            updateCursorPosition();
-            
-            // Gradually return to center over time - different for each weapon
-            let recoveryTime;
-            if (currentCursorType === 'uzi') {
-                recoveryTime = 150 + (heatRatio * 100); // Slower recovery when hot
-            } else { // without-uzi (rifle)
-                recoveryTime = 600; // Much slower recovery - 4x longer than base uzi
-            }
-            const startTime = Date.now();
-            const startRecoilX = recoilX;
-            const startRecoilY = recoilY;
-            const startRecoilRotation = recoilRotation;
-            
-            function recoverFromRecoil() {
-                const elapsed = Date.now() - startTime;
-                const progress = Math.min(1, elapsed / recoveryTime);
-                const easeOut = 1 - Math.pow(1 - progress, 3); // Ease out curve
-                
-                recoilX = startRecoilX * (1 - easeOut);
-                recoilY = startRecoilY * (1 - easeOut);
-                recoilRotation = startRecoilRotation * (1 - easeOut);
-                
-                updateCursorPosition();
-                
-                if (progress < 1) {
-                    requestAnimationFrame(recoverFromRecoil);
-                }
-            }
-            
-            requestAnimationFrame(recoverFromRecoil);
-        }
-
-        function createMuzzleFlash(x, y, heat = 0) {
-            const flash = document.createElement('div');
-            flash.className = 'muzzle-flash';
-            
-            // Calculate heat-based properties (0-100 heat scale)
-            const heatRatio = heat / 100;
-            const baseSize = 30;
-            const maxSizeMultiplier = 2.5; // Flash can grow 2.5x larger at max heat
-            const sizeMultiplier = 1 + (heatRatio * (maxSizeMultiplier - 1));
-            
-            // Heat-based color intensity - transitions from cyan to white-hot
-            const heatAlpha = 0.3 + (heatRatio * 0.7); // More opaque when hot
-            const whiteIntensity = heatRatio * 0.8; // More white at higher heat
-            
-            const flashSize = baseSize * sizeMultiplier;
-            flash.style.left = (x - flashSize/2) + 'px';
-            flash.style.top = (y - flashSize/2) + 'px';
-            flash.style.width = flashSize + 'px';
-            flash.style.height = flashSize + 'px';
-            flash.style.opacity = '1';
-            
-            // Dynamic gradient based on heat level
-            flash.style.background = `radial-gradient(circle, 
-                rgba(255, 255, 255, ${whiteIntensity + 0.3}) 0%,
-                rgba(255, 200, 0, ${heatAlpha}) 20%,
-                rgba(255, 100, 0, ${heatAlpha * 0.9}) 35%,
-                rgba(0, 255, 255, ${heatAlpha * 0.8}) 50%,
-                rgba(138, 43, 226, ${heatAlpha * 0.6}) 70%,
-                transparent 85%)`;
-            
-            // More blur for hotter flashes
-            const blurAmount = 1 + (heatRatio * 3);
-            flash.style.filter = `blur(${blurAmount}px)`;
-            
-            document.body.appendChild(flash);
-
-            // Flash animation - faster decay for hotter flashes
-            let flashOpacity = 1;
-            let currentSize = flashSize;
-            const growthRate = 2 + (heatRatio * 4); // Hotter flashes expand faster
-            const fadeRate = 0.08 + (heatRatio * 0.04); // Hotter flashes fade slightly faster
-            
-            function animateFlash() {
-                flashOpacity -= fadeRate;
-                currentSize += growthRate;
-                
-                flash.style.opacity = flashOpacity;
-                flash.style.width = currentSize + 'px';
-                flash.style.height = currentSize + 'px';
-                flash.style.left = (x - currentSize/2) + 'px';
-                flash.style.top = (y - currentSize/2) + 'px';
-                
-                if (flashOpacity > 0) {
-                    requestAnimationFrame(animateFlash);
-                } else {
-                    flash.remove();
-                }
-            }
-            
-            animateFlash();
-        }
-
-        
-        // Hide default cursor
-        document.addEventListener('mouseenter', () => {
-            document.body.style.cursor = 'none';
-        });
-
-        // ===== SPRITE GAME INTEGRATION =====
-        
-        // Game state
-        let score = 0;
-        let waveNumber = 1;
-        let shotsFired = 0;
-        let sprites = [];
-        let gameRunning = true;
-        let gamePaused = false;
-        let spriteIdCounter = 0;
-
-        // Sprite images cache
-        const spriteImages = {};
-        
-        // Commit types cache
-        let commitTypes = [];
-
-        // Load commit types from file
-        async function loadCommitTypes() {
-            try {
-                const response = await fetch('commit-types.txt?t=' + Date.now());
-                const text = await response.text();
-                commitTypes = text.split('\n').map(type => type.trim()).filter(type => type !== '');
-                console.log('Loaded commit types:', commitTypes);
-            } catch (error) {
-                console.log('Error loading commit types:', error);
-                // Fallback commit types
-                commitTypes = ['feat', 'fix', 'chore', 'refactor', 'perf', 'test', 'docs', 'style'];
-            }
-        }
-        
-        // Load sprite images
-        async function loadSpriteImages() {
-            const imageMap = {
-                'fighter': ['sprites/fighters/fighter-sprite-1.png', 'sprites/fighters/fighter-sprite-2.png'],
-                'bomber': ['sprites/bombers/bomber-sprite-1.png', 'sprites/bombers/bomber-sprite-2.png'],
-                'ship': ['sprites/ships/carrier-sprite-1.png'],
-                'sub': ['sprites/subs/sub-sprite-1.png'],
-                'special': ['sprites/specials/sr-71-sprite.png']
-            };
-            
-            for (const [type, paths] of Object.entries(imageMap)) {
-                spriteImages[type] = [];
-                for (const path of paths) {
-                    const img = new Image();
-                    img.src = path;
-                    await new Promise(resolve => img.onload = resolve);
-                    spriteImages[type].push(img);
-                }
-            }
-        }
-
-        // Base Sprite class
-        class Sprite {
-            constructor(x, y, spriteType) {
-                this.id = `sprite-${spriteIdCounter++}`;
-                this.x = x;
-                this.y = y;
-                this.spriteType = spriteType;
-                this.health = 1;
-                this.speed = 0.7;
-                this.pointValue = 100;
-                this.width = 40;
-                this.height = 40;
-                this.angle = isMobile() ? -30 : 35; // Mobile: tilted left 30 degrees, Desktop: diagonal angle
-                this.isDestroyed = false;
-                this.xDirection = Math.random() > 0.5 ? 1 : -1; // Initialize direction here
-                this.imageIndex = 0;
-                this.animationTimer = 0;
-                this.element = null;
-                this.labelElement = null;
-                this.commitType = commitTypes[Math.floor(Math.random() * commitTypes.length)] || 'feat';
-                this.createDOMElement();
-                console.log('Sprite spawned at:', this.x, 'Direction:', this.xDirection);
-            }
-            
-            createDOMElement() {
-                // Create sprite element
-                this.element = document.createElement('div');
-                this.element.className = 'game-sprite';
-                this.element.id = this.id;
-                this.element.style.width = this.width + 'px';
-                this.element.style.height = this.height + 'px';
-                this.element.style.position = 'fixed';
-                this.element.style.pointerEvents = 'none';
-                
-                const img = document.createElement('img');
-                img.src = spriteImages[this.spriteType][this.imageIndex].src;
-                img.style.width = '100%';
-                img.style.height = '100%';
-                this.element.appendChild(img);
-                
-                // Create label element
-                this.labelElement = document.createElement('div');
-                this.labelElement.className = 'sprite-label';
-                this.labelElement.textContent = this.commitType + ':';
-                
-                document.body.appendChild(this.element);
-                document.body.appendChild(this.labelElement);
-                this.updatePosition();
-            }
-            
-            update() {
-                if (this.isDestroyed) return;
-                
-                this.move();
-                // Animation disabled - keep single image
-                this.updatePosition();
-            }
-            
-            move() {
-                // Check if mobile device
-                console.log('MOVE DEBUG: isMobile():', isMobile(), 'width:', window.innerWidth);
-                if (isMobile()) {
-                    console.log('MOBILE PATH: Using mobile movement');
-                    // Mobile: zig-zag movement
-                    this.y -= this.speed * 0.5; // Vertical speed
-                    
-                    // Move horizontally at 2x slower than vertical (0.25 instead of 0.5)
-                    this.x += this.speed * this.xDirection * 0.25; // Horizontal speed is 2x slower
-                    
-                    // Log position for debugging
-                    if (this.x <= 20 || this.x >= window.innerWidth - this.width - 20) {
-                        console.log('Near edge!', this.x, window.innerWidth);
-                    }
-                    
-                    // Bounce off screen edges
-                    if (this.x <= 0) {
-                        this.x = 0;
-                        this.xDirection = 1; // Go right
-                        this.angle = 15;
-                        console.log('Bounced left!');
-                    } else if (this.x >= window.innerWidth - this.width) {
-                        this.x = window.innerWidth - this.width;
-                        this.xDirection = -1; // Go left
-                        this.angle = -15;
-                        console.log('Bounced right!');
-                    }
-                } else {
-                    console.log('DESKTOP PATH: Using desktop movement');
-                    // Desktop: original diagonal movement
-                    this.y -= this.speed;
-                    this.x += this.speed * 1.4; // Diagonal movement towards top-right
-                }
-            }
-            
-            updatePosition() {
-                this.element.style.left = this.x + 'px';
-                this.element.style.top = this.y + 'px';
-                this.element.style.transform = `rotate(${this.angle}deg)`;
-                
-                // Position label above sprite
-                if (this.labelElement) {
-                    this.labelElement.style.left = (this.x + this.width/2 - 15) + 'px';
-                    this.labelElement.style.top = (this.y - 20) + 'px';
-                }
-            }
-            
-            checkHit(bulletX, bulletY) {
-                return bulletX >= this.x && bulletX <= this.x + this.width &&
-                       bulletY >= this.y && bulletY <= this.y + this.height;
-            }
-            
-            takeDamage() {
-                this.health--;
-                if (this.health <= 0) {
-                    this.destroy();
-                    return true;
-                }
-                return false;
-            }
-            
-            destroy() {
-                this.isDestroyed = true;
-                score += this.pointValue;
-                updateGameUI();
-                
-                // Explosion effect
-                const explosion = document.createElement('div');
-                explosion.style.position = 'fixed';
-                explosion.style.left = (this.x + this.width/2 - 30) + 'px';
-                explosion.style.top = (this.y + this.height/2 - 30) + 'px';
-                explosion.style.width = '60px';
-                explosion.style.height = '60px';
-                explosion.style.background = 'radial-gradient(circle, rgba(255,100,0,0.8) 0%, rgba(255,200,0,0.4) 50%, transparent 70%)';
-                explosion.style.borderRadius = '50%';
-                explosion.style.pointerEvents = 'none';
-                explosion.style.zIndex = '1000';
-                document.body.appendChild(explosion);
-                
-                setTimeout(() => explosion.remove(), 300);
-                
-                this.element.remove();
-                if (this.labelElement) {
-                    this.labelElement.remove();
-                }
-            }
-            
-            isOffScreen() {
-                return this.y < -50 || 
-                       this.x < -50 || this.x > window.innerWidth + 50;
-            }
-        }
-
-        // Fighter class - fast, low health, evasive
-        class Fighter extends Sprite {
-            constructor(x, y) {
-                super(x, y, 'fighter');
-                this.health = 1;
-                this.speed = (3 + Math.random() * 2) * 0.4;
-                this.pointValue = 150;
-                this.width = 35;
-                this.height = 35;
-                this.direction = Math.random() < 0.5 ? -1 : 1;
-                this.zigzagAmplitude = 50;
-                this.zigzagFreq = 0.05;
-                this.initialX = x;
-            }
-            
-            move() {
-                if (isMobile()) {
-                    // Mobile: zig-zag movement
-                    this.y -= this.speed * 0.5;
-                    this.x += this.speed * this.xDirection * 0.25;
-                    
-                    // Bounce off screen edges
-                    if (this.x <= 0) {
-                        this.x = 0;
-                        this.xDirection = 1;
-                        this.angle = 15;
-                    } else if (this.x >= window.innerWidth - this.width) {
-                        this.x = window.innerWidth - this.width;
-                        this.xDirection = -1;
-                        this.angle = -15;
-                    }
-                } else {
-                    this.y -= this.speed;
-                    this.x += this.speed * 1.4; // Diagonal movement towards top-right
-                }
-            }
-        }
-
-        // Bomber class - slow, high health, formation flying
-        class Bomber extends Sprite {
-            constructor(x, y) {
-                super(x, y, 'bomber');
-                this.health = 3;
-                this.speed = (1 + Math.random() * 0.5) * 0.7;
-                this.pointValue = 400;
-                this.width = 50;
-                this.height = 50;
-            }
-            
-            move() {
-                if (isMobile()) {
-                    // Mobile: zig-zag movement
-                    this.y -= this.speed * 0.5;
-                    this.x += this.speed * this.xDirection * 0.25;
-                    
-                    // Bounce off screen edges
-                    if (this.x <= 0) {
-                        this.x = 0;
-                        this.xDirection = 1;
-                        this.angle = 15;
-                    } else if (this.x >= window.innerWidth - this.width) {
-                        this.x = window.innerWidth - this.width;
-                        this.xDirection = -1;
-                        this.angle = -15;
-                    }
-                } else {
-                    this.y -= this.speed;
-                    this.x += this.speed * 1.4; // Diagonal movement towards top-right
-                }
-            }
-        }
-
-        // Ship class - very slow, very high health
-        class Ship extends Sprite {
-            constructor(x, y) {
-                super(x, y, 'ship');
-                this.health = 8;
-                this.speed = 0.35;
-                this.pointValue = 1000;
-                this.width = 80;
-                this.height = 60;
-                this.direction = Math.random() < 0.5 ? -1 : 1;
-            }
-            
-            move() {
-                if (isMobile()) {
-                    // Mobile: zig-zag movement
-                    this.y -= this.speed * 0.5;
-                    this.x += this.speed * this.xDirection * 0.25;
-                    
-                    // Bounce off screen edges
-                    if (this.x <= 0) {
-                        this.x = 0;
-                        this.xDirection = 1;
-                        this.angle = 15;
-                    } else if (this.x >= window.innerWidth - this.width) {
-                        this.x = window.innerWidth - this.width;
-                        this.xDirection = -1;
-                        this.angle = -15;
-                    }
-                } else {
-                    this.y -= this.speed;
-                    this.x += this.speed * 1.4; // Diagonal movement towards top-right
-                }
-            }
-        }
-
-        // Sub class - medium speed, stealth ability
-        class Sub extends Sprite {
-            constructor(x, y) {
-                super(x, y, 'sub');
-                this.health = 2;
-                this.speed = 1.4;
-                this.pointValue = 300;
-                this.width = 45;
-                this.height = 25;
-                this.isSubmerged = false;
-                this.submergeTimer = 0;
-                this.opacity = 1;
-            }
-            
-            move() {
-                if (isMobile()) {
-                    // Mobile: zig-zag movement
-                    this.y -= this.speed * 0.5;
-                    this.x += this.speed * this.xDirection * 0.25;
-                    
-                    // Bounce off screen edges
-                    if (this.x <= 0) {
-                        this.x = 0;
-                        this.xDirection = 1;
-                        this.angle = 15;
-                    } else if (this.x >= window.innerWidth - this.width) {
-                        this.x = window.innerWidth - this.width;
-                        this.xDirection = -1;
-                        this.angle = -15;
-                    }
-                } else {
-                    this.y -= this.speed;
-                    this.x += this.speed * 1.4; // Diagonal movement towards top-right
-                }
-                
-                // Random submerging
-                this.submergeTimer++;
-                if (this.submergeTimer > 120 && Math.random() < 0.02) {
-                    this.isSubmerged = !this.isSubmerged;
-                    this.submergeTimer = 0;
-                }
-                
-                this.opacity = this.isSubmerged ? 0.3 : 1;
-                this.element.style.opacity = this.opacity;
-            }
-        }
-
-        // Special class - very fast, high bonus points
-        class Special extends Sprite {
-            constructor(x, y) {
-                super(x, y, 'special');
-                this.health = 1;
-                this.speed = (5 + Math.random() * 3) * 0.7;
-                this.pointValue = 750;
-                this.width = 60;
-                this.height = 30;
-                this.changeTimer = 0;
-                this.currentDirection = Math.random() * Math.PI * 2;
-            }
-            
-            move() {
-                if (isMobile()) {
-                    // Mobile: zig-zag movement
-                    this.y -= this.speed * 0.5;
-                    this.x += this.speed * this.xDirection * 0.25;
-                    
-                    // Bounce off screen edges
-                    if (this.x <= 0) {
-                        this.x = 0;
-                        this.xDirection = 1;
-                        this.angle = 15;
-                    } else if (this.x >= window.innerWidth - this.width) {
-                        this.x = window.innerWidth - this.width;
-                        this.xDirection = -1;
-                        this.angle = -15;
-                    }
-                } else {
-                    this.y -= this.speed;
-                    this.x += this.speed * 1.4; // Diagonal movement towards top-right
-                }
-            }
-        }
-
-        // Wave spawner system
-        class WaveSpawner {
-            constructor() {
-                this.spawnPoint = isMobile() 
-                    ? { x: window.innerWidth / 2, y: window.innerHeight + 50 } // Mobile: center bottom
-                    : { x: 50, y: window.innerHeight + 50 }; // Desktop: bottom left
-                this.spawnTimer = 0;
-                this.waveInProgress = false;
-                this.spawnDelay = 40; // frames between spawns (much faster waves)
-                this.spawnedInWave = 0;
-            }
-            
-            update() {
-                // Don't update spawning when game is paused
-                if (gamePaused) return;
-                
-                this.spawnTimer++;
-                
-                if (!this.waveInProgress && sprites.filter(s => !s.isDestroyed).length === 0) {
-                    this.startWave();
-                }
-                
-                if (this.waveInProgress && this.spawnTimer >= this.spawnDelay) {
-                    this.spawnSprite();
-                    this.spawnTimer = 0;
-                }
-                
-                // End wave when enough sprites spawned
-                if (this.waveInProgress && this.spawnedInWave >= this.getWaveSize()) {
-                    this.waveInProgress = false;
-                }
-            }
-            
-            startWave() {
-                this.waveInProgress = true;
-                this.spawnTimer = 0;
-                this.spawnedInWave = 0;
-                waveNumber++;
-                updateGameUI();
-            }
-            
-            getWaveSize() {
-                // More aggressive scaling: starts at 3, increases by 2 every wave, max of 20
-                return Math.min(3 + (waveNumber * 2), 20);
-            }
-            
-            spawnSprite() {
-                const spawnX = isMobile() 
-                    ? window.innerWidth / 2 - 20 // Mobile: spawn in center
-                    : this.spawnPoint.x + Math.random() * 200; // Desktop: original
-                const spawnY = this.spawnPoint.y;
-                
-                // Determine sprite type based on wave number
-                const rand = Math.random();
-                let sprite;
-                
-                if (waveNumber <= 2) {
-                    // Early waves: mostly fighters
-                    sprite = new Fighter(spawnX, spawnY);
-                } else if (waveNumber <= 5) {
-                    // Mid waves: fighters and bombers
-                    if (rand < 0.7) {
-                        sprite = new Fighter(spawnX, spawnY);
-                    } else {
-                        sprite = new Bomber(spawnX, spawnY);
-                    }
-                } else {
-                    // Later waves: mix of all types
-                    if (rand < 0.15) {
-                        sprite = new Fighter(spawnX, spawnY);
-                    } else if (rand < 0.4) {
-                        sprite = new Bomber(spawnX, spawnY);
-                    } else if (rand < 0.65) {
-                        sprite = new Sub(spawnX, spawnY);
-                    } else if (rand < 0.9) {
-                        sprite = new Ship(spawnX, spawnY);
-                    } else {
-                        sprite = new Special(spawnX, spawnY);
-                    }
-                }
-                
-                sprites.push(sprite);
-                this.spawnedInWave++;
-            }
-        }
-
-        // Game systems
-        const waveSpawner = new WaveSpawner();
-
-        // Update game UI
-        function updateGameUI() {
-            document.getElementById('score').textContent = score;
-            document.getElementById('shots').textContent = shotsFired;
-        }
-
-        // No need to override fireBullet anymore - collision detection is handled in bullet animation
-
-        // Game loop
-        function gameLoop() {
-            if (!gameRunning) return;
-            
-            // Only update game logic when not paused
-            if (!gamePaused) {
-                // Update systems
-                waveSpawner.update();
-                
-                // Update sprites
-                sprites.forEach(sprite => {
-                    if (!sprite.isDestroyed) {
-                        sprite.update();
-                    }
-                });
-                
-                // Remove destroyed or off-screen sprites
-                sprites = sprites.filter(sprite => {
-                    if (sprite.isDestroyed || sprite.isOffScreen()) {
-                        if (!sprite.isDestroyed) {
-                            sprite.element.remove();
-                            if (sprite.labelElement) {
-                                sprite.labelElement.remove();
-                            }
-                        }
-                        return false;
-                    }
-                    return true;
-                });
-            }
-            
-            requestAnimationFrame(gameLoop);
-        }
-
-        // Initialize sprite game
-        async function initSpriteGame() {
-            await loadCommitTypes();
-            await loadSpriteImages();
-            updateGameUI();
-            gameLoop();
-        }
-
-        // Start the sprite game when page loads
-        window.addEventListener('load', () => {
-            initSpriteGame();
-        });
-
-        // Handle window resize and orientation changes
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                console.log('Window resized, mobile:', isMobile());
-                // Update existing sprites' behavior on resize
-                sprites.forEach(sprite => {
-                    sprite.angle = isMobile() ? -30 : 35;
-                });
-            }, 250);
-        });
-
-        window.addEventListener('orientationchange', () => {
-            console.log('Orientation changed, mobile:', isMobile());
-        });
+      fetch("https://api.github.com/repos/devflowinc/uzi")
+        .then((response) => response.json())
+        .then((data) => {
+          const starCount = data.stargazers_count;
+          const starCountElement = document.getElementById("star-count");
+          if (starCountElement) {
+            starCountElement.textContent = `| ${starCount}`;
+          }
+        })
+        .catch((error) => console.error("Error fetching GitHub stars:", error));
     </script>
-</body>
+  </body>
 </html>
