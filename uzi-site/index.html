@@ -140,6 +140,80 @@
         margin: 0; /* Removes any default paragraph margins to help with alignment */
       }
 
+      /* Centered Content Area */
+      .content-center {
+        position: relative;
+        z-index: 3; /* Above background and grain */
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 0 2rem; /* Add some padding */
+      }
+
+      .main-title {
+        font-size: 3.5rem; /* Adjust as needed */
+        font-weight: 700;
+        margin-bottom: 1.5rem; /* Space below title */
+        color: #ffffff; /* White title */
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); /* Subtle glow */
+      }
+
+      /* Gundam Style Code Block */
+      .code-block-container {
+        background-color: #1a1a1a;
+        border: 1px solid #444;
+        border-radius: 8px;
+        padding: 1rem 1.5rem;
+        margin-top: 1rem;
+        display: inline-block;
+        position: relative;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        min-width: 300px; /* Add minimum width */
+      }
+
+      .code-block {
+        padding-right: 70px; /* Add padding to make space for the button */
+      }
+
+      .code-block pre {
+        margin: 0;
+        color: #00ff9d;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo,
+          Courier, monospace;
+        font-size: 0.9rem;
+        white-space: pre-wrap;
+        text-align: left;
+      }
+
+      .copy-button {
+        position: absolute;
+        top: 50%; /* Center vertically */
+        transform: translateY(-50%); /* Center vertically */
+        right: 10px;
+        background-color: #00ff9d;
+        color: #0a0a0a;
+        border: none;
+        padding: 0.3rem 0.6rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        transition: background-color 0.2s ease;
+        z-index: 1; /* Ensure button is above code */
+      }
+
+      .copy-button:hover {
+        background-color: #00e68a; /* Slightly darker on hover */
+      }
+      .copy-button.copied {
+        background-color: #555;
+        color: #00ff9d;
+      }
+
       @media (max-width: 768px) {
         .navbar {
           padding: 1.5rem;
@@ -152,6 +226,14 @@
 
         .tagline {
           font-size: 3rem;
+        }
+
+        .main-title {
+          font-size: 2.5rem; /* Adjust title for smaller screens */
+        }
+
+        .code-block pre {
+          font-size: 0.8rem; /* Adjust code font for smaller screens */
         }
 
         .nav-links {
@@ -178,6 +260,9 @@
         animation: loop 60s linear infinite; /* Adjusted timing for potentially long text */
         will-change: transform; /* Hint for browser optimization */
         backface-visibility: hidden; /* May help with flickering */
+        transform: translateZ(
+          0
+        ); /* Added to potentially force hardware acceleration */
       }
 
       @keyframes loop {
@@ -238,7 +323,7 @@
           >
           <a
             href="https://github.com/devflowinc/uzi?tab=readme-ov-file#usage-examples"
-            >Guide</a
+            >Commands</a
           >
         </div>
         <div class="star-us-cta">
@@ -279,10 +364,23 @@
                 </g>
               </g>
             </svg>
-            <p>Star Us <span id="star-count">| 188</span></p>
+            <p>Star <span id="star-count">| 190</span></p>
           </a>
         </div>
       </nav>
+
+      <!-- Centered Content: Title and Code Block -->
+      <div class="content-center">
+        <h1 class="main-title">UZI: THE FULL-AUTO OF CODE GEN</h1>
+        <div class="code-block-container">
+          <button class="copy-button" onclick="copyToClipboard(this)">
+            Copy
+          </button>
+          <div class="code-block">
+            <pre><code>go install github.com/devflowinc/uzi@latest</code></pre>
+          </div>
+        </div>
+      </div>
 
       <!-- Removed original banner div -->
       <!-- <div class="banner">
@@ -332,6 +430,43 @@
           }
         })
         .catch((error) => console.error("Error fetching GitHub stars:", error));
+
+      function copyToClipboard(button) {
+        const codeBlock = button.nextElementSibling.querySelector("code");
+        const textToCopy = codeBlock.innerText;
+        navigator.clipboard
+          .writeText(textToCopy)
+          .then(() => {
+            button.textContent = "Copied!";
+            button.classList.add("copied");
+            setTimeout(() => {
+              button.textContent = "Copy";
+              button.classList.remove("copied");
+            }, 2000);
+          })
+          .catch((err) => {
+            console.error("Failed to copy: ", err);
+            // Fallback for older browsers or if clipboard API fails
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+              document.execCommand("copy");
+              button.textContent = "Copied!";
+              button.classList.add("copied");
+              setTimeout(() => {
+                button.textContent = "Copy";
+                button.classList.remove("copied");
+              }, 2000);
+            } catch (err) {
+              console.error("Fallback copy failed: ", err);
+              alert("Failed to copy text.");
+            }
+            document.body.removeChild(textArea);
+          });
+      }
     </script>
   </body>
 </html>
