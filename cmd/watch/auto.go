@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -22,6 +23,7 @@ import (
 type AgentWatcher struct {
 	stateManager    *state.StateManager
 	watchedSessions map[string]*SessionMonitor
+	mu              sync.RWMutex
 	quit            chan bool
 }
 
@@ -88,6 +90,7 @@ func (aw *AgentWatcher) hasUpdated(sessionName string) (bool, bool, error) {
 		hasPrompt = true
 	}
 
+	aw.mu.Lock()
 	monitor, exists := aw.watchedSessions[sessionName]
 	if !exists {
 		// First time monitoring this session
@@ -98,6 +101,7 @@ func (aw *AgentWatcher) hasUpdated(sessionName string) (bool, bool, error) {
 			updateCount:    0,
 			noUpdateCount:  0,
 		}
+		aw.mu.Unlock()
 		return false, hasPrompt, nil
 	}
 
@@ -108,10 +112,12 @@ func (aw *AgentWatcher) hasUpdated(sessionName string) (bool, bool, error) {
 		monitor.lastUpdated = time.Now()
 		monitor.updateCount++
 		monitor.noUpdateCount = 0
+		aw.mu.Unlock()
 		return true, hasPrompt, nil
 	}
 
 	monitor.noUpdateCount++
+	aw.mu.Unlock()
 	return false, hasPrompt, nil
 }
 
@@ -157,6 +163,7 @@ func (aw *AgentWatcher) refreshActiveSessions() error {
 	}
 
 	// Stop watching sessions that are no longer active
+	aw.mu.Lock()
 	for sessionName := range aw.watchedSessions {
 		found := false
 		for _, activeSession := range activeSessions {
@@ -170,10 +177,14 @@ func (aw *AgentWatcher) refreshActiveSessions() error {
 			delete(aw.watchedSessions, sessionName)
 		}
 	}
+	aw.mu.Unlock()
 
 	// Start watching new active sessions
 	for _, sessionName := range activeSessions {
-		if _, exists := aw.watchedSessions[sessionName]; !exists {
+		aw.mu.RLock()
+		_, exists := aw.watchedSessions[sessionName]
+		aw.mu.RUnlock()
+		if !exists {
 			go aw.watchSession(sessionName)
 		}
 	}
