@@ -205,3 +205,92 @@ uzi prompt --agents=random:5 "Fix all TypeScript errors"
 ```bash
 uzi run "npm test"
 ```
+
+
+## FAQ
+
+### What is Uzi?
+
+Uzi is a CLI tool for running large numbers of coding agents in parallel with git worktrees. It enables you to spin up multiple AI coding assistants (Claude Code, Cursor, Codex, etc.) to work on different tasks simultaneously, then merge their results back together.
+
+### Key Features
+
+| Feature | Description |
+|---------|-------------|
+| **Parallel Execution** | Run multiple agents concurrently on separate worktrees |
+| **Git Worktrees** | Each agent works in isolated worktree to avoid conflicts |
+| **Multi-Agent Support** | Works with Claude Code, Cursor, Codex, Windsurf, and more |
+| **Task Queue** | Manage and prioritize multiple development tasks |
+| **Merge Automation** | Automatically merge completed work back to main |
+| **Conflict Resolution** | Handles merge conflicts with AI assistance |
+
+### Installation
+
+```bash
+# Install via cargo (Rust)
+cargo install uzi
+
+# Or build from source
+git clone https://github.com/devflowinc/uzi.git
+cd uzi
+cargo build --release
+```
+
+### Requirements
+
+| Requirement | Version |
+|-------------|---------|
+| **Rust** | 1.70+ |
+| **Git** | 2.17+ (worktrees support) |
+| **AI Agent CLI** | Claude Code, Cursor, or compatible |
+
+### Quick Start
+
+```bash
+# Initialize uzi in your project
+uzi init
+
+# Add tasks for agents
+uzi add "Implement feature X"
+uzi add "Fix bug Y"
+uzi add "Add tests for module Z"
+
+# Run all agents in parallel
+uzi run --parallel 3
+
+# Monitor progress
+uzi status
+
+# Merge completed work
+uzi merge
+```
+
+### Workflow Example
+
+1. **Initialize**: Setup uzi configuration in your repo
+2. **Add Tasks**: Define what each agent should work on
+3. **Run Parallel**: Spawn multiple agents in isolated worktrees
+4. **Monitor**: Track progress and catch errors early
+5. **Merge**: Integrate completed work back to main branch
+
+### Benefits vs Sequential Approach
+
+| Metric | Sequential | Uzi (Parallel) |
+|--------|-----------|----------------|
+| **Time** | 3 hours | 1 hour (3x faster) |
+| **Context Switching** | High | Low (isolated worktrees) |
+| **Conflicts** | Frequent | Rare (separate branches) |
+| **Productivity** | 1 agent | N agents simultaneously |
+
+### Is Uzi Free?
+
+Yes! Uzi is open-source. Free to use in personal and commercial projects.
+
+### Help & Resources
+
+| Resource | Link |
+|----------|------|
+| **Documentation** | [uzi.sh](https://www.uzi.sh) |
+| **Whitepaper** | [cdn.trieve.ai/uzi-whitepaper.pdf](https://cdn.trieve.ai/uzi-whitepaper.pdf) |
+| **GitHub Issues** | [github.com/devflowinc/uzi/issues](https://github.com/devflowinc/uzi/issues) |
+| **Discord** | [discord.gg/uzi](https://discord.gg/uzi) |
