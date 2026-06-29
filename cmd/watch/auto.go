@@ -75,8 +75,9 @@ func (aw *AgentWatcher) hasUpdated(sessionName string) (bool, bool, error) {
 	// Check for specific prompts that need auto-enter
 	hasPrompt := false
 
-	// Check for Claude trust prompt
-	if strings.Contains(content, "Do you trust the files in this folder?") {
+	// Check for Claude trust prompt (GitHub Copilot uses the same wording)
+	if strings.Contains(content, "Do you trust the files in this folder?") ||
+		strings.Contains(content, "Confirm folder trust") {
 		hasPrompt = true
 	}
 

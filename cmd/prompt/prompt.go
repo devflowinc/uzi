@@ -74,6 +74,24 @@ func parseAgents(agentsStr string) (map[string]AgentConfig, error) {
 	return agentConfigs, nil
 }
 
+// buildAgentCommand returns the command prefix used to invoke an agent. Most
+// agents are launched as `<agent> "<prompt>"`, but GitHub Copilot needs its
+// non-interactive flags so it never blocks on a permission or trust prompt. The
+// trailing prompt is still appended by the tmux send-keys template, so the
+// returned command ends with -p for copilot. An optional model is read from
+// COPILOT_MODEL and passed through with --model.
+func buildAgentCommand(commandToUse string) string {
+	if commandToUse != "copilot" {
+		return commandToUse
+	}
+
+	cmd := "copilot -s --allow-all-tools --no-ask-user"
+	if model := strings.TrimSpace(os.Getenv("COPILOT_MODEL")); model != "" {
+		cmd += " --model " + model
+	}
+	return cmd + " -p"
+}
+
 // isPortAvailable checks if a port is available for use
 func isPortAvailable(port int) bool {
 	address := fmt.Sprintf(":%d", port)
@@ -237,7 +255,7 @@ func executePrompt(ctx context.Context, args []string) error {
 				}
 
 				// Always run send-keys command to the agent pane
-				tmuxCmd := fmt.Sprintf("tmux send-keys -t %s:agent '%s \"%%s\"' C-m", sessionName, commandToUse)
+				tmuxCmd := fmt.Sprintf("tmux send-keys -t %s:agent '%s \"%%s\"' C-m", sessionName, buildAgentCommand(commandToUse))
 				tmuxCmdExec := exec.CommandContext(ctx, "sh", "-c", fmt.Sprintf(tmuxCmd, promptText))
 				tmuxCmdExec.Dir = worktreePath
 				if err := tmuxCmdExec.Run(); err != nil {
@@ -302,7 +320,7 @@ func executePrompt(ctx context.Context, args []string) error {
 			assignedPorts = append(assignedPorts, selectedPort)
 
 			// Always run send-keys command to the agent pane
-			tmuxCmd := fmt.Sprintf("tmux send-keys -t %s:agent '%s \"%%s\"' C-m", sessionName, commandToUse)
+			tmuxCmd := fmt.Sprintf("tmux send-keys -t %s:agent '%s \"%%s\"' C-m", sessionName, buildAgentCommand(commandToUse))
 			tmuxCmdExec := exec.CommandContext(ctx, "sh", "-c", fmt.Sprintf(tmuxCmd, promptText))
 			tmuxCmdExec.Dir = worktreePath
 			if err := tmuxCmdExec.Run(); err != nil {
