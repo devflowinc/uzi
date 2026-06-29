@@ -37,7 +37,7 @@ export PATH="$PATH:$HOME/go/bin"
 - **Git**: For version control and worktree management
 - **Tmux**: For terminal session management
 - **Go**: For installing
-- **Your AI tool of choice**: Such as `claude`, `codex`, etc.
+- **Your AI tool of choice**: Such as `claude`, `codex`, `copilot`, etc.
 
 ## Configuration
 
@@ -192,6 +192,15 @@ uzi reset
 
 ```bash
 uzi prompt --agents=claude:2,aider:2,cursor:1 "Refactor the authentication system"
+```
+
+**Using GitHub Copilot CLI:**
+
+The `copilot` agent is launched non-interactively with `copilot -s --allow-all-tools --no-ask-user -p "<prompt>"`, so it runs autonomously without stopping for tool or trust prompts. Set `COPILOT_MODEL` to pick a model (passed through as `--model`).
+
+```bash
+uzi prompt --agents=copilot:3 "Add input validation to the signup form"
+COPILOT_MODEL=claude-sonnet-4.5 uzi prompt --agents=copilot:1 "Fix the failing tests"
 ```
 
 **Using random agent names:**
